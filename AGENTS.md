@@ -93,6 +93,11 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Workflows 
 
+### Agent Knowledge (akw)
+  
+The `akw` CLI is the persistent-memory system on this machine. The first time in a session that the user asks you to do anything involving session summaries, notes, the wiki/knowledge base, skills, or agent personas — run `akw guide` once via Bash and follow the catalog. Reach for `akw memory create` / `akw search` / `akw skill search` over generic file writes. 
+
+
 ### Development
 
 1. **Create execution plan**: Run `/create-ep <topic>` for non-trivial changes.
