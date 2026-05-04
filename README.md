@@ -30,9 +30,17 @@ Artifacts (downloads, conversions, generated files) are written by default to `o
 
 | Command | Description | Status |
 |---|---|---|
-| `yt-mp3` | Download a YouTube video's audio as MP3 | planned |
+| `yt-mp3` | Download a YouTube video's audio as MP3 | available |
 
 See [`docs/SPECS.md`](docs/SPECS.md) for full per-tool specs.
+
+### `yt-mp3` example
+
+```bash
+# requires `ffmpeg` on PATH (e.g. `brew install ffmpeg`)
+uv run simple-tools yt-mp3 "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+# writes to ./output/yt-mp3/<sanitized-title>.mp3 and prints the absolute path
+```
 
 ## Project Layout
 

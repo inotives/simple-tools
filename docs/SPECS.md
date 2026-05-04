@@ -110,7 +110,7 @@ Output policy:
 
 ### 1. `yt-mp3` — YouTube audio downloader
 
-**Status:** planned (first tool)
+**Status:** available
 
 Download the audio track of a YouTube video as an MP3 file.
 
