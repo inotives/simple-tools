@@ -24,15 +24,63 @@ uv run simple-tools <tool> --help        # help for a specific tool
 uv run simple-tools <tool> [args...]     # run a tool
 ```
 
+> **For AI agents:** every tool exposes its full flag surface via `--help`. Run `uv run simple-tools <tool> --help` before invoking a tool to discover its arguments, defaults, and behavior. The per-tool sections below mirror that output.
+
 Artifacts (downloads, conversions, generated files) are written by default to `output/<tool>/` at the repo root.
 
 ## Tools
 
 | Command | Description | Status |
 |---|---|---|
-| `yt-mp3` | Download a YouTube video's audio as MP3 | planned |
+| `yt-mp3` | Download a YouTube video's audio as MP3 | available |
 
 See [`docs/SPECS.md`](docs/SPECS.md) for full per-tool specs.
+
+### `yt-mp3`
+
+Download a YouTube video's audio as an MP3. Requires `ffmpeg` on PATH (e.g. `brew install ffmpeg`).
+
+**Usage**
+
+```
+simple-tools yt-mp3 [OPTIONS] URL
+```
+
+**Arguments**
+
+| Name | Required | Description |
+|---|---|---|
+| `URL` | yes | YouTube video URL to extract audio from. Playlists and channel URLs are not supported. |
+
+**Options**
+
+| Flag | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--output` | `-o` | path | `output/yt-mp3` | Directory to write the MP3 into. Created if missing. Resolved relative to CWD. |
+| `--bitrate` | `-b` | int | `192` | MP3 bitrate in kbps. Common values: 128 (compact), 192 (balanced), 320 (highest standard MP3 quality). |
+| `--filename` | `-f` | str | video title (sanitized) | Output filename without extension. The `.mp3` extension is added automatically. Path separators are stripped. |
+| `--debug` |  | flag | off | On failure, show the full Python traceback instead of a single-line error message. |
+| `--help` |  | flag |  | Show full help and exit. |
+
+**Behavior**
+
+- On success: prints the absolute path of the produced MP3 to stdout (one line). Progress goes to stderr.
+- On failure: exits `1` with a one-line stderr message (use `--debug` for full traceback). Missing required argument exits `2`.
+- Refuses to overwrite an existing file at the target path.
+
+**Examples**
+
+```bash
+# default: writes to ./output/yt-mp3/<sanitized-title>.mp3
+uv run simple-tools yt-mp3 "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+
+# custom filename + bitrate + output dir
+uv run simple-tools yt-mp3 \
+  "https://www.youtube.com/watch?v=jNQXAC9IVRw" \
+  --filename me-at-the-zoo \
+  --bitrate 320 \
+  --output ~/Music/clips
+```
 
 ## Project Layout
 
