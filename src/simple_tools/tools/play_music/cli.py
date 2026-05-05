@@ -1,10 +1,12 @@
 import random
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
 from simple_tools.tools.play_music.player import find_mp3s, play_one
+from simple_tools.tools.play_music.visualizer import visualizer
 
 
 def play_music(
@@ -33,6 +35,17 @@ def play_music(
         typer.Option(
             "--no-recursive",
             help="Scan only the top level of the folder; do not descend into subfolders.",
+        ),
+    ] = False,
+    visualize: Annotated[
+        bool,
+        typer.Option(
+            "--visualize",
+            help=(
+                "Render an animated bar visualizer below the now-playing line. "
+                "Cosmetic only — the bars are time-driven, not synced to the "
+                "actual audio. No-op when stdout is not a TTY."
+            ),
         ),
     ] = False,
     debug: Annotated[
@@ -76,7 +89,8 @@ def play_music(
             for track in shuffled:
                 typer.echo(f"▶ {track}")
                 try:
-                    play_one(track)
+                    with visualizer() if visualize else nullcontext():
+                        play_one(track)
                 except FileNotFoundError as exc:
                     if debug:
                         raise
