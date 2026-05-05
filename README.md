@@ -105,7 +105,7 @@ simple-tools play-music [OPTIONS] FOLDER
 |---|---|---|---|---|
 | `--once` |  | flag | off | Play one shuffled pass and exit. Default loops forever. |
 | `--no-recursive` |  | flag | off | Scan only the top level of `FOLDER`. |
-| `--visualize` |  | flag | off | Render an animated bar visualizer below the now-playing line. Cosmetic only — bars are time-driven, not synced to actual audio. No-op when stdout is not a TTY. |
+| `--visualize` |  | flag | off | Render an animated bar visualizer beside the playback timer. Bars are colored green→yellow→red by height; set `NO_COLOR=1` to disable color. Cosmetic only — bars are time-driven, not synced to actual audio. No-op when stdout is not a TTY. |
 | `--debug` |  | flag | off | On failure, show full Python traceback instead of a one-line error. |
 | `--help` |  | flag |  | Show full help and exit. |
 

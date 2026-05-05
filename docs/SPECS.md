@@ -156,7 +156,7 @@ simple-tools play-music <folder> [--once] [--no-recursive] [--debug]
 | `<folder>` (positional) | required | Directory to scan for `.mp3` files |
 | `--once` | off | Play one shuffled pass and exit instead of looping |
 | `--no-recursive` | off | Scan only the top level of the folder |
-| `--visualize` | off | Render an animated bar visualizer (cosmetic, time-driven; not synced to actual audio). No-op when stdout is not a TTY. |
+| `--visualize` | off | Render an animated bar visualizer (cosmetic, time-driven; not synced to actual audio). Bars colored green/yellow/red by height; honors the `NO_COLOR` env var. No-op when stdout is not a TTY. |
 | `--debug` | off | Re-raise exceptions instead of one-line stderr error |
 
 **Dependencies:**

@@ -41,9 +41,10 @@ def play_music(
         typer.Option(
             "--visualize",
             help=(
-                "Render an animated bar visualizer below the now-playing line. "
-                "Cosmetic only — the bars are time-driven, not synced to the "
-                "actual audio. No-op when stdout is not a TTY."
+                "Render an animated bar visualizer beside the playback timer. "
+                "Bars are colored green/yellow/red by height (set NO_COLOR=1 "
+                "to disable color). Cosmetic only — the bars are time-driven, "
+                "not synced to the actual audio. No-op when stdout is not a TTY."
             ),
         ),
     ] = False,

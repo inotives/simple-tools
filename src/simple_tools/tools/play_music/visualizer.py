@@ -1,3 +1,4 @@
+import os
 import random
 import sys
 import threading
@@ -13,6 +14,20 @@ _BAR_FRAME_INTERVAL = 0.08
 _TIMER_ONLY_INTERVAL = 0.25
 _BEAT_PROBABILITY = 0.04
 _CLEAR_WIDTH = _BARS + 32  # bars + timer + padding
+
+# VU-meter palette: green (calm) → yellow (mid) → red (peak/beats).
+_COLOR_GREEN = "\033[92m"
+_COLOR_YELLOW = "\033[93m"
+_COLOR_RED = "\033[91m"
+_COLOR_RESET = "\033[0m"
+
+
+def _color_for(level: int) -> str:
+    if level >= 6:
+        return _COLOR_RED
+    if level >= 4:
+        return _COLOR_YELLOW
+    return _COLOR_GREEN
 
 
 def _format_time(seconds: float) -> str:
@@ -52,6 +67,7 @@ def visualizer(
     rng = random.Random()
     interval = _BAR_FRAME_INTERVAL if show_bars else _TIMER_ONLY_INTERVAL
     start = time.monotonic()
+    use_color = "NO_COLOR" not in os.environ
 
     def _render(heights: list[float]) -> str:
         elapsed = time.monotonic() - start
@@ -60,7 +76,12 @@ def visualizer(
         else:
             timer = f"[{_format_time(elapsed)}]"
         if show_bars:
-            bars = "".join(_BLOCKS[int(h)] for h in heights)
+            if use_color:
+                bars = "".join(
+                    _color_for(int(h)) + _BLOCKS[int(h)] for h in heights
+                ) + _COLOR_RESET
+            else:
+                bars = "".join(_BLOCKS[int(h)] for h in heights)
             return f"  {timer}  {bars}"
         return f"  {timer}"
 

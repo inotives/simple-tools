@@ -1,5 +1,7 @@
 import io
 
+import pytest
+
 from simple_tools.tools.play_music.visualizer import visualizer
 
 
@@ -56,3 +58,48 @@ def test_visualizer_renders_bars_when_show_bars_true() -> None:
     assert any(ch in out for ch in "▁▂▃▄▅▆▇█")
     assert "[00:00/01:00]" in out
     assert out.endswith("\r")
+
+
+def test_visualizer_emits_color_codes_with_bars_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ANSI color escapes are present in bar frames unless NO_COLOR is set."""
+    import time
+
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    buf = _FakeTTY()
+    with visualizer(duration=60.0, show_bars=True, stream=buf):
+        time.sleep(0.05)
+    out = buf.getvalue()
+
+    # at least one of green/yellow/red and the reset code
+    assert any(code in out for code in ("\033[92m", "\033[93m", "\033[91m"))
+    assert "\033[0m" in out
+
+
+def test_visualizer_omits_color_when_NO_COLOR_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    """NO_COLOR opts out of ANSI color codes while keeping bars and timer."""
+    import time
+
+    monkeypatch.setenv("NO_COLOR", "1")
+    buf = _FakeTTY()
+    with visualizer(duration=60.0, show_bars=True, stream=buf):
+        time.sleep(0.05)
+    out = buf.getvalue()
+
+    assert any(ch in out for ch in "▁▂▃▄▅▆▇█")
+    for code in ("\033[92m", "\033[93m", "\033[91m", "\033[0m"):
+        assert code not in out
+
+
+def test_visualizer_no_color_codes_in_timer_only_mode() -> None:
+    """Timer-only mode never emits color codes."""
+    import time
+
+    buf = _FakeTTY()
+    with visualizer(duration=None, show_bars=False, stream=buf):
+        time.sleep(0.05)
+    out = buf.getvalue()
+
+    for code in ("\033[92m", "\033[93m", "\033[91m", "\033[0m"):
+        assert code not in out
