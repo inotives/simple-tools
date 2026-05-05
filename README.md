@@ -112,9 +112,10 @@ simple-tools play-music [OPTIONS] FOLDER
 **Behavior**
 
 - Discovers `.mp3` files (case-insensitive); empty or missing folder → exit `1`.
-- Shuffles and plays each track via `ffplay -nodisp -autoexit -loglevel quiet`. Prints `▶ <path>` to stdout per track.
+- Shuffles and plays each track via `ffplay -nodisp -autoexit -loglevel quiet`. Prints `▶ <path> (mm:ss)` to stdout per track (duration via `ffprobe`).
+- During playback (when stdout is a TTY), updates a live `[mm:ss/mm:ss]` count-up timer on a single line. With `--visualize`, the bar animation joins that line.
 - Default mode loops, reshuffling between passes. `Ctrl-C` exits `0` cleanly.
-- Missing `ffplay` → exit `1` with hint to `brew install ffmpeg`.
+- Missing `ffplay` → exit `1` with hint to `brew install ffmpeg`. Missing `ffprobe` is non-fatal — the timer simply omits the total duration.
 
 **Examples**
 

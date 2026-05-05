@@ -9,8 +9,15 @@ from typing import IO
 _BARS = 32
 _BLOCKS = " ▁▂▃▄▅▆▇█"
 _LEVELS = len(_BLOCKS) - 1
-_FRAME_INTERVAL = 0.08
+_BAR_FRAME_INTERVAL = 0.08
+_TIMER_ONLY_INTERVAL = 0.25
 _BEAT_PROBABILITY = 0.04
+_CLEAR_WIDTH = _BARS + 32  # bars + timer + padding
+
+
+def _format_time(seconds: float) -> str:
+    s = max(0, int(seconds))
+    return f"{s // 60:02d}:{s % 60:02d}"
 
 
 def _step(heights: list[float], rng: random.Random) -> list[float]:
@@ -26,11 +33,15 @@ def _step(heights: list[float], rng: random.Random) -> list[float]:
 
 
 @contextmanager
-def visualizer(stream: IO[str] | None = None) -> Iterator[None]:
-    """Render a single-line animated bar visualizer for the duration of the context.
+def visualizer(
+    duration: float | None = None,
+    show_bars: bool = False,
+    stream: IO[str] | None = None,
+) -> Iterator[None]:
+    """Render an updating playback line for the duration of the context.
 
-    Silently no-ops when the stream is not a TTY (e.g. when piped or under test),
-    so wrapping a code path in `visualizer()` is safe in any environment.
+    Always shows an elapsed/total timer. Bars are opt-in via show_bars.
+    No-ops on non-TTY streams (safe in pipes, tests, CI).
     """
     out = stream if stream is not None else sys.stderr
     if not out.isatty():
@@ -39,15 +50,28 @@ def visualizer(stream: IO[str] | None = None) -> Iterator[None]:
 
     stop = threading.Event()
     rng = random.Random()
+    interval = _BAR_FRAME_INTERVAL if show_bars else _TIMER_ONLY_INTERVAL
+    start = time.monotonic()
+
+    def _render(heights: list[float]) -> str:
+        elapsed = time.monotonic() - start
+        if duration is not None:
+            timer = f"[{_format_time(elapsed)}/{_format_time(duration)}]"
+        else:
+            timer = f"[{_format_time(elapsed)}]"
+        if show_bars:
+            bars = "".join(_BLOCKS[int(h)] for h in heights)
+            return f"  {timer}  {bars}"
+        return f"  {timer}"
 
     def _loop() -> None:
         heights = [rng.uniform(0.0, float(_LEVELS)) for _ in range(_BARS)]
         while not stop.is_set():
-            heights = _step(heights, rng)
-            line = "".join(_BLOCKS[int(h)] for h in heights)
-            out.write(f"\r  {line}")
+            if show_bars:
+                heights = _step(heights, rng)
+            out.write(f"\r{_render(heights)}")
             out.flush()
-            time.sleep(_FRAME_INTERVAL)
+            time.sleep(interval)
 
     thread = threading.Thread(target=_loop, daemon=True)
     thread.start()
@@ -56,5 +80,5 @@ def visualizer(stream: IO[str] | None = None) -> Iterator[None]:
     finally:
         stop.set()
         thread.join(timeout=1.0)
-        out.write("\r" + " " * (_BARS + 2) + "\r")
+        out.write("\r" + " " * _CLEAR_WIDTH + "\r")
         out.flush()

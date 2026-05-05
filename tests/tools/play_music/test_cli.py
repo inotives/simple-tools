@@ -14,6 +14,12 @@ def _touch(p: Path) -> None:
     p.touch()
 
 
+@pytest.fixture(autouse=True)
+def _stub_get_duration(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Avoid invoking real ffprobe per CLI test."""
+    monkeypatch.setattr(pm_cli, "get_duration", lambda _path: None)
+
+
 def test_root_help_lists_play_music() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0

@@ -1,11 +1,10 @@
 import random
-from contextlib import nullcontext
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
-from simple_tools.tools.play_music.player import find_mp3s, play_one
+from simple_tools.tools.play_music.player import find_mp3s, get_duration, play_one
 from simple_tools.tools.play_music.visualizer import visualizer
 
 
@@ -87,9 +86,14 @@ def play_music(
             if last_played is not None and len(shuffled) > 1 and shuffled[0] == last_played:
                 shuffled[0], shuffled[-1] = shuffled[-1], shuffled[0]
             for track in shuffled:
-                typer.echo(f"▶ {track}")
+                duration = get_duration(track)
+                if duration is not None:
+                    mins, secs = divmod(int(duration), 60)
+                    typer.echo(f"▶ {track} ({mins:02d}:{secs:02d})")
+                else:
+                    typer.echo(f"▶ {track}")
                 try:
-                    with visualizer() if visualize else nullcontext():
+                    with visualizer(duration=duration, show_bars=visualize):
                         play_one(track)
                 except FileNotFoundError as exc:
                     if debug:

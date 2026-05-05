@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 
 from simple_tools.tools.play_music import player
-from simple_tools.tools.play_music.player import find_mp3s, play_one
+from simple_tools.tools.play_music.player import find_mp3s, get_duration, play_one
 
 
 def _touch(p: Path) -> None:
@@ -109,3 +109,53 @@ def test_play_one_returns_nonzero_exit_code(
     monkeypatch.setattr(player.subprocess, "run", fake_run)
 
     assert play_one(tmp_path / "song.mp3") == 130
+
+
+def test_get_duration_returns_float_on_success(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    class FakeCompleted:
+        returncode = 0
+        stdout = "183.456\n"
+        stderr = ""
+
+    monkeypatch.setattr(player.subprocess, "run", lambda *a, **k: FakeCompleted())
+
+    assert get_duration(tmp_path / "song.mp3") == 183.456
+
+
+def test_get_duration_returns_none_when_ffprobe_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    def fake_run(*_: Any, **__: Any) -> Any:
+        raise FileNotFoundError("ffprobe")
+
+    monkeypatch.setattr(player.subprocess, "run", fake_run)
+
+    assert get_duration(tmp_path / "song.mp3") is None
+
+
+def test_get_duration_returns_none_on_nonzero_exit(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    class FakeCompleted:
+        returncode = 1
+        stdout = ""
+        stderr = "boom"
+
+    monkeypatch.setattr(player.subprocess, "run", lambda *a, **k: FakeCompleted())
+
+    assert get_duration(tmp_path / "song.mp3") is None
+
+
+def test_get_duration_returns_none_when_output_unparseable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    class FakeCompleted:
+        returncode = 0
+        stdout = "N/A\n"
+        stderr = ""
+
+    monkeypatch.setattr(player.subprocess, "run", lambda *a, **k: FakeCompleted())
+
+    assert get_duration(tmp_path / "song.mp3") is None
