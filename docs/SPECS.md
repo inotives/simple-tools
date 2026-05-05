@@ -156,6 +156,7 @@ simple-tools play-music <folder> [--once] [--no-recursive] [--debug]
 | `<folder>` (positional) | required | Directory to scan for `.mp3` files |
 | `--once` | off | Play one shuffled pass and exit instead of looping |
 | `--no-recursive` | off | Scan only the top level of the folder |
+| `--visualize` | off | Render an animated bar visualizer (cosmetic, time-driven; not synced to actual audio). Bars colored green/yellow/red by height; honors the `NO_COLOR` env var. No-op when stdout is not a TTY. |
 | `--debug` | off | Re-raise exceptions instead of one-line stderr error |
 
 **Dependencies:**
@@ -165,9 +166,10 @@ simple-tools play-music <folder> [--once] [--no-recursive] [--debug]
 **Behavior:**
 - Discovers `.mp3` files (case-insensitive); recurses by default. Empty folder or missing folder → exit `1`.
 - Shuffles with `random.shuffle` and plays each track via `ffplay -nodisp -autoexit -loglevel quiet`.
-- Prints `▶ <path>` to stdout per track; ffplay output is silenced.
+- Probes each track's duration via `ffprobe` before playing. Prints `▶ <path> (mm:ss)` to stdout (or `▶ <path>` if duration probe fails).
+- During playback (TTY only), updates a single live line below the track header showing `[mm:ss/mm:ss]` (elapsed/total). With `--visualize`, the bar visualizer joins the same line: `[mm:ss/mm:ss]  ▁▂▃▄▅▆▇█...`.
 - Ctrl-C exits `0` cleanly (no traceback unless `--debug`).
-- Missing `ffplay` on PATH → exit `1` with install hint pointing at `brew install ffmpeg`.
+- Missing `ffplay` on PATH → exit `1` with install hint pointing at `brew install ffmpeg`. Missing `ffprobe` is non-fatal — the timer just hides the total duration.
 
 **Out of scope (v1):**
 - Audio formats other than MP3 (`.m4a` / `.flac` / `.ogg` deferred)

@@ -105,15 +105,17 @@ simple-tools play-music [OPTIONS] FOLDER
 |---|---|---|---|---|
 | `--once` |  | flag | off | Play one shuffled pass and exit. Default loops forever. |
 | `--no-recursive` |  | flag | off | Scan only the top level of `FOLDER`. |
+| `--visualize` |  | flag | off | Render an animated bar visualizer beside the playback timer. Bars are colored green→yellow→red by height; set `NO_COLOR=1` to disable color. Cosmetic only — bars are time-driven, not synced to actual audio. No-op when stdout is not a TTY. |
 | `--debug` |  | flag | off | On failure, show full Python traceback instead of a one-line error. |
 | `--help` |  | flag |  | Show full help and exit. |
 
 **Behavior**
 
 - Discovers `.mp3` files (case-insensitive); empty or missing folder → exit `1`.
-- Shuffles and plays each track via `ffplay -nodisp -autoexit -loglevel quiet`. Prints `▶ <path>` to stdout per track.
+- Shuffles and plays each track via `ffplay -nodisp -autoexit -loglevel quiet`. Prints `▶ <path> (mm:ss)` to stdout per track (duration via `ffprobe`).
+- During playback (when stdout is a TTY), updates a live `[mm:ss/mm:ss]` count-up timer on a single line. With `--visualize`, the bar animation joins that line.
 - Default mode loops, reshuffling between passes. `Ctrl-C` exits `0` cleanly.
-- Missing `ffplay` → exit `1` with hint to `brew install ffmpeg`.
+- Missing `ffplay` → exit `1` with hint to `brew install ffmpeg`. Missing `ffprobe` is non-fatal — the timer simply omits the total duration.
 
 **Examples**
 
@@ -126,6 +128,9 @@ uv run simple-tools play-music ~/Music --once
 
 # top-level only, no subfolder recursion
 uv run simple-tools play-music ~/Music --no-recursive --once
+
+# with animated bar visualizer (cosmetic; requires a TTY)
+uv run simple-tools play-music output/yt-mp3 --visualize
 ```
 
 ## Project Layout

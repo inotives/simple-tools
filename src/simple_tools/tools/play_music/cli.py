@@ -4,7 +4,8 @@ from typing import Annotated
 
 import typer
 
-from simple_tools.tools.play_music.player import find_mp3s, play_one
+from simple_tools.tools.play_music.player import find_mp3s, get_duration, play_one
+from simple_tools.tools.play_music.visualizer import visualizer
 
 
 def play_music(
@@ -33,6 +34,18 @@ def play_music(
         typer.Option(
             "--no-recursive",
             help="Scan only the top level of the folder; do not descend into subfolders.",
+        ),
+    ] = False,
+    visualize: Annotated[
+        bool,
+        typer.Option(
+            "--visualize",
+            help=(
+                "Render an animated bar visualizer beside the playback timer. "
+                "Bars are colored green/yellow/red by height (set NO_COLOR=1 "
+                "to disable color). Cosmetic only — the bars are time-driven, "
+                "not synced to the actual audio. No-op when stdout is not a TTY."
+            ),
         ),
     ] = False,
     debug: Annotated[
@@ -74,9 +87,15 @@ def play_music(
             if last_played is not None and len(shuffled) > 1 and shuffled[0] == last_played:
                 shuffled[0], shuffled[-1] = shuffled[-1], shuffled[0]
             for track in shuffled:
-                typer.echo(f"▶ {track}")
+                duration = get_duration(track)
+                if duration is not None:
+                    mins, secs = divmod(int(duration), 60)
+                    typer.echo(f"▶ {track} ({mins:02d}:{secs:02d})")
+                else:
+                    typer.echo(f"▶ {track}")
                 try:
-                    play_one(track)
+                    with visualizer(duration=duration, show_bars=visualize):
+                        play_one(track)
                 except FileNotFoundError as exc:
                     if debug:
                         raise
