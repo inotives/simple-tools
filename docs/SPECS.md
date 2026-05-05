@@ -140,6 +140,40 @@ simple-tools yt-mp3 <url> [--output DIR] [--bitrate KBPS] [--filename NAME]
 - Output formats other than MP3
 - ID3 tag enrichment beyond yt-dlp defaults
 
+### 2. `play-music` — random MP3 player from a folder
+
+**Status:** available
+
+Discover MP3s under a folder, shuffle, and play them via ffplay. Default behavior loops forever (reshuffling between passes); Ctrl-C stops cleanly.
+
+**CLI shape:**
+```
+simple-tools play-music <folder> [--once] [--no-recursive] [--debug]
+```
+
+| Flag | Default | Notes |
+|---|---|---|
+| `<folder>` (positional) | required | Directory to scan for `.mp3` files |
+| `--once` | off | Play one shuffled pass and exit instead of looping |
+| `--no-recursive` | off | Scan only the top level of the folder |
+| `--debug` | off | Re-raise exceptions instead of one-line stderr error |
+
+**Dependencies:**
+- Python: stdlib only
+- System: `ffplay` (ships with `ffmpeg`; `brew install ffmpeg`)
+
+**Behavior:**
+- Discovers `.mp3` files (case-insensitive); recurses by default. Empty folder or missing folder → exit `1`.
+- Shuffles with `random.shuffle` and plays each track via `ffplay -nodisp -autoexit -loglevel quiet`.
+- Prints `▶ <path>` to stdout per track; ffplay output is silenced.
+- Ctrl-C exits `0` cleanly (no traceback unless `--debug`).
+- Missing `ffplay` on PATH → exit `1` with install hint pointing at `brew install ffmpeg`.
+
+**Out of scope (v1):**
+- Audio formats other than MP3 (`.m4a` / `.flac` / `.ogg` deferred)
+- Pause / skip / volume / interactive controls
+- Playlist persistence between runs
+
 ---
 
 ## Development Setup

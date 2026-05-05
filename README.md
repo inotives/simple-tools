@@ -33,6 +33,7 @@ Artifacts (downloads, conversions, generated files) are written by default to `o
 | Command | Description | Status |
 |---|---|---|
 | `yt-mp3` | Download a YouTube video's audio as MP3 | available |
+| `play-music` | Randomly play MP3s from a folder | available |
 
 See [`docs/SPECS.md`](docs/SPECS.md) for full per-tool specs.
 
@@ -80,6 +81,51 @@ uv run simple-tools yt-mp3 \
   --filename me-at-the-zoo \
   --bitrate 320 \
   --output ~/Music/clips
+```
+
+### `play-music`
+
+Randomly play MP3 files from a folder. Requires `ffplay` (bundled with `ffmpeg`; `brew install ffmpeg`).
+
+**Usage**
+
+```
+simple-tools play-music [OPTIONS] FOLDER
+```
+
+**Arguments**
+
+| Name | Required | Description |
+|---|---|---|
+| `FOLDER` | yes | Directory to scan for `.mp3` files. Subdirectories are included by default. |
+
+**Options**
+
+| Flag | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--once` |  | flag | off | Play one shuffled pass and exit. Default loops forever. |
+| `--no-recursive` |  | flag | off | Scan only the top level of `FOLDER`. |
+| `--debug` |  | flag | off | On failure, show full Python traceback instead of a one-line error. |
+| `--help` |  | flag |  | Show full help and exit. |
+
+**Behavior**
+
+- Discovers `.mp3` files (case-insensitive); empty or missing folder → exit `1`.
+- Shuffles and plays each track via `ffplay -nodisp -autoexit -loglevel quiet`. Prints `▶ <path>` to stdout per track.
+- Default mode loops, reshuffling between passes. `Ctrl-C` exits `0` cleanly.
+- Missing `ffplay` → exit `1` with hint to `brew install ffmpeg`.
+
+**Examples**
+
+```bash
+# loop forever, reshuffling between passes (Ctrl-C to stop)
+uv run simple-tools play-music output/yt-mp3
+
+# play one shuffled pass and exit
+uv run simple-tools play-music ~/Music --once
+
+# top-level only, no subfolder recursion
+uv run simple-tools play-music ~/Music --no-recursive --once
 ```
 
 ## Project Layout
