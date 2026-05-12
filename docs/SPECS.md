@@ -176,6 +176,48 @@ simple-tools play-music <folder> [--once] [--no-recursive] [--debug]
 - Pause / skip / volume / interactive controls
 - Playlist persistence between runs
 
+### 3. `prompt-optimizer` — expand a short idea into a structured agent prompt
+
+**Status:** available
+
+Send a one-line idea to a free LLM and get back a structured prompt sized for an AI agent's context. Output uses `Goal / Context / Task / Constraints / Success Criteria / Output Format` sections, following superpowers writing-skills guidance (concise, trigger-driven, progressive disclosure).
+
+**CLI shape:**
+```
+simple-tools prompt-optimizer [OPTIONS] [TEXT]
+```
+
+| Flag | Default | Notes |
+|---|---|---|
+| `<text>` (positional) | required unless `--stdin` | Short idea to optimize. |
+| `--stdin` | off | Read the idea from stdin instead. |
+| `--output`, `-o` | none (stdout) | Write to this file; refuses to overwrite. |
+| `--provider` | `auto` | `auto` = Groq then NVIDIA NIM. `groq` / `nvidia` force one provider. |
+| `--model` | provider default | Override model name. |
+| `--debug` | off | Re-raise exceptions instead of one-line stderr error. |
+
+**Dependencies:**
+- Python: stdlib only (uses `urllib.request`).
+- System: none.
+- Network: free-tier OpenAI-compatible endpoints — Groq (`api.groq.com`) and NVIDIA NIM (`integrate.api.nvidia.com`).
+
+**Environment:**
+- `GROQ_API_KEY` — required for Groq (default primary).
+- `NVIDIA_NIM_API_KEY` (alias `NVIDIA_API_KEY`) — required for NVIDIA NIM (fallback).
+- At least one must be set; otherwise the tool exits `1`.
+
+**Behavior:**
+- Validates input is non-empty. Empty → exit `1`.
+- In `auto` mode: try Groq; on `ProviderError` (missing key, HTTP error, network error, malformed response) fall through to NVIDIA NIM. If both fail, exit `1` with a stderr message naming each provider's failure.
+- Prints the optimized markdown prompt to stdout (or writes to `--output`). Provider info goes to stderr (`prompt-optimizer: provider=groq`).
+- Refuses to overwrite an existing `--output` file.
+
+**Out of scope (v1):**
+- Other providers (OpenAI, Anthropic, Gemini direct, OpenRouter) — easy to add later by extending `optimizer.py`.
+- Streaming output.
+- Caching responses.
+- Iterative refinement / multi-turn editing of the produced prompt.
+
 ---
 
 ## Development Setup

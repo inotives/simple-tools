@@ -34,6 +34,7 @@ Artifacts (downloads, conversions, generated files) are written by default to `o
 |---|---|---|
 | `yt-mp3` | Download a YouTube video's audio as MP3 | available |
 | `play-music` | Randomly play MP3s from a folder | available |
+| `prompt-optimizer` | Expand a one-line idea into a structured agent prompt (Groq → NVIDIA NIM) | available |
 
 See [`docs/SPECS.md`](docs/SPECS.md) for full per-tool specs.
 
@@ -131,6 +132,58 @@ uv run simple-tools play-music ~/Music --no-recursive --once
 
 # with animated bar visualizer (cosmetic; requires a TTY)
 uv run simple-tools play-music output/yt-mp3 --visualize
+```
+
+### `prompt-optimizer`
+
+Turn a short idea into a structured prompt optimized for agent context. Sends the idea to a free LLM (Groq, then NVIDIA NIM as fallback) wrapped in a meta-prompt that asks for a `Goal / Context / Task / Constraints / Success Criteria / Output Format` structure (inspired by superpowers writing-skills guidance).
+
+**Usage**
+
+```
+simple-tools prompt-optimizer [OPTIONS] [TEXT]
+```
+
+**Arguments**
+
+| Name | Required | Description |
+|---|---|---|
+| `TEXT` | unless `--stdin` | Short idea to expand into a structured agent prompt. |
+
+**Options**
+
+| Flag | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--stdin` |  | flag | off | Read the idea from stdin instead of the positional argument. |
+| `--output` | `-o` | path | (stdout) | Write the optimized prompt to this file. Refuses to overwrite. |
+| `--provider` |  | str | `auto` | `auto` tries Groq then NVIDIA NIM. `groq` or `nvidia` force a single provider. |
+| `--model` |  | str | provider default | Override model name (e.g. `llama-3.3-70b-versatile` for Groq). |
+| `--debug` |  | flag | off | On failure, show full Python traceback. |
+
+**Environment**
+
+- `GROQ_API_KEY` — sign up at https://console.groq.com (free tier).
+- `NVIDIA_NIM_API_KEY` (or `NVIDIA_API_KEY`) — sign up at https://build.nvidia.com (free tier).
+
+At least one must be set. See [`free-llm-api-resources`](https://github.com/cheahjs/free-llm-api-resources) for current free-tier options.
+
+**Examples**
+
+```bash
+# print to stdout
+export GROQ_API_KEY=...
+uv run simple-tools prompt-optimizer "build me a CLI that converts CSV to parquet"
+
+# pipe in
+echo "investigate why my API endpoint is slow" \
+  | uv run simple-tools prompt-optimizer --stdin
+
+# save to a file
+uv run simple-tools prompt-optimizer "review my PR for security issues" \
+  -o output/prompts/security-review.md
+
+# force NVIDIA NIM
+uv run simple-tools prompt-optimizer "..." --provider nvidia
 ```
 
 ## Project Layout
