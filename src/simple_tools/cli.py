@@ -1,6 +1,7 @@
 import typer
 
 from simple_tools.tools.play_music import play_music
+from simple_tools.tools.prompt_optimizer import prompt_optimizer
 from simple_tools.tools.yt_mp3 import yt_mp3
 
 app = typer.Typer(
@@ -17,6 +18,7 @@ def _root() -> None:
 
 app.command("yt-mp3")(yt_mp3)
 app.command("play-music")(play_music)
+app.command("prompt-optimizer")(prompt_optimizer)
 
 
 if __name__ == "__main__":
